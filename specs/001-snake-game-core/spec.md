@@ -5,6 +5,26 @@
 **Status**: Draft  
 **Input**: User description: "Será construído um Jogo da Cobrinha com níveis de dificuldade selecionáveis. O jogo deve ter obstáculos de acordo com o nível de dificuldade. O jogador deve ser capaz de reiniciar o jogo facilmente, pausar, ver quanto tempo está durando a jogatina, e a cada vez que reiniciar o tempo reinicia também. Precisa ser salvo os 5 maiores scores, e ao final de cada jogatina o jogador pode colocar o nome que quiser para marcar o seu score da jogatina realizada, e se for colocado um nome já existente não permite e exige que seja colocado um nome diferente ou clicar no botão para gerar nome aleatório diferente de qualquer nome já existente na lista para salvar o score daquela jogatina."
 
+## Clarifications
+
+### Session 2026-04-05
+
+- Q: Qual é a regra de formato e comprimento máximo para o nome do jogador no ranking? → A: Letras, números, espaços e hífens; máximo 20 caracteres.
+- Q: A pontuação por alimento varia conforme o nível de dificuldade? → A: Sim — multiplicador por nível: Fácil ×1, Médio ×2, Difícil ×3.
+- Q: Controle touch no mobile deve usar swipe, botões on-screen, ou ambos? → A: Ambos simultaneamente — swipe E botões direcionais on-screen.
+- Q: O ranking pode ser consultado fora da tela de Game Over? → A: Sim — também acessível na tela inicial via botão dedicado.
+- Q: O que acontece quando a janela do navegador perde o foco durante uma partida? → A: O jogo pausa automaticamente; o cronômetro congela; a retomada requer ação explícita do jogador.
+
+### Session 2026-04-05 (Round 2)
+
+- Q: Qual estratégia de orientação a objetos deve ser usada na implementação? → A: Classes individuais por entidade (Snake, Arena, GameSession, Ranking, UIManager, Game como orquestrador) com composição pura — zero herança desnecessária.
+- Q: Qual formato e conceito visual para o favicon? → A: Emoji 🐍 via SVG data URI inline no `<link rel="icon">` do `index.html` — sem arquivo externo, sem build step. *(Decisão final reafirmada em Q4.)*
+- Q: Onde devem aparecer os créditos do autor e o copyright dinâmico? → A: `<footer>` fixo no rodapé de todas as telas, texto discreto em cor secundária neon; copyright gerado dinamicamente via `new Date().getFullYear()` — nenhum ano hardcoded.
+- Q: Como o favicon deve ser entregue no repositório (gerado com IA vs. abordagem existente)? → A: Emoji 🐍 via SVG data URI inline — manter a abordagem já definida em tasks.md (T048); nenhum arquivo de imagem externo necessário.
+- Q: O tasks.md deve ser atualizado agora para refletir OOP, footer e favicon, ou aguardar /speckit.tasks? → A: Atualizar tasks.md agora — adicionar tarefa de footer com copyright dinâmico, ajustar descrições das tarefas de entidades para usar `class` ES6+, e confirmar favicon emoji SVG data URI.
+
+---
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Jogar a Cobrinha e Marcar Pontos (Priority: P1)
@@ -143,6 +163,9 @@ e verificando que o ranking mostra a entrada correta após recarregar a página.
    o score não qualificou para o top 5.
 6. **Given** o jogador não quer salvar seu score, **When** ele clica em "Não salvar" / cancela,
    **Then** o score é descartado e o jogador retorna à tela inicial sem alterar o ranking.
+7. **Given** o jogador está na tela inicial, **When** ele clica no botão "Ranking" / "Melhores Scores",
+   **Then** é exibida a lista atual dos até 5 melhores scores com nome, pontuação e dificuldade;
+   se o ranking estiver vazio, uma mensagem informativa é exibida no lugar.
 
 ---
 
@@ -160,12 +183,14 @@ onboarding de novos jogadores em qualquer plataforma.
 **Acceptance Scenarios**:
 
 1. **Given** o jogador está na tela inicial, **When** ele clica no ícone/botão de ajuda,
-   **Then** uma tela/modal lista todos os controles: direcionais (setas/WASD), pausa (P), reiniciar e
-   abrir ajuda, com seções distintas para desktop e mobile.
+   **Then** uma tela/modal lista todos os controles: direcionais (setas/WASD) para desktop; swipe
+   direcional no canvas E botões on-screen para mobile; pausa (P / botão); reiniciar; abrir ajuda —
+   com seções claramente distintas para desktop e mobile.
 2. **Given** a partida está em andamento no desktop, **When** o jogador pressiona H ou ?,
    **Then** o jogo pausa automaticamente e a tela de ajuda é exibida.
 3. **Given** a tela de ajuda está aberta, **When** o jogador fecha a ajuda,
-   **Then** o jogo retoma (se estava em andamento) ou retorna ao estado anterior.
+   **Then** o jogo retoma (se estava com `status === 'playing'` ao abrir a ajuda) ou retorna ao
+   estado anterior sem retomar (se estava com `status === 'paused'` ou sem partida ativa).
 
 ---
 
@@ -173,6 +198,11 @@ onboarding de novos jogadores em qualquer plataforma.
 
 - O que acontece se o jogador tenta mover a cobra na direção oposta ao movimento atual (giro 180°)?
   → O comando deve ser ignorado silenciosamente; a cobra continua no mesmo sentido.
+- O que acontece se o jogador aciona swipe e botão on-screen ao mesmo tempo (input simultâneo)?
+  → O primeiro input registrado no frame atual é processado; o segundo é descartado para aquele frame.
+- O que acontece se o jogador troca de aba ou minimiza o navegador durante uma partida?
+  → O jogo pausa automaticamente e o cronômetro congela; ao retornar, o estado de pausa permanece
+  ativo e o jogador deve acionar retomada explicitamente para evitar mortes injustas.
 - O que acontece se não há células vazias disponíveis para spawnar um novo alimento (campo lotado)?
   → O jogo deve declarar vitória ou encerrar a partida com um indicador de "Campo cheio".
 - O que acontece se o jogador fechar o navegador no meio da partida?
@@ -183,6 +213,9 @@ onboarding de novos jogadores em qualquer plataforma.
   → O sistema exibe erro de validação pedindo um nome antes de aceitar.
 - O que acontece se o gerador de nomes aleatórios esgotar permutações disponíveis?
   → O gerador cai para um fallback com sufixo numérico incremental garantindo unicidade.
+- O que acontece se o jogador digita caracteres especiais (ex: `<script>`, emojis) no campo de nome?
+  → O sistema rejeita a entrada com mensagem de erro de formato; o formulário permanece aberto;
+  nenhuma verificação de duplicidade é realizada para entradas inválidas.
 
 ## Requirements *(mandatory)*
 
@@ -193,11 +226,18 @@ onboarding de novos jogadores em qualquer plataforma.
 - **FR-002**: O campo MUST exibir no máximo um alimento por vez em uma célula vazia aleatória; uma
   nova posição MUST ser sorteada imediatamente após o alimento ser consumido.
 - **FR-003**: Ao consumir um alimento, a cobra MUST crescer 1 segmento e o score MUST ser incrementado
-  em 1 ponto, ambos de forma imediata e visível.
+  pelo valor correspondente ao nível de dificuldade ativo (Fácil: +1 ponto, Médio: +2 pontos,
+  Difícil: +3 pontos), de forma imediata e visível.
+- **FR-020**: O nível de dificuldade e o multiplicador de pontuação ativo MUST ser exibidos de forma
+  visível na tela durante a partida, para que o jogador saiba quantos pontos cada alimento vale.
 - **FR-004**: O jogo MUST entrar em estado de Game Over quando a cabeça da cobra colidir com: a borda
   do campo, um obstáculo ou qualquer segmento do próprio corpo da cobra.
 - **FR-005**: O jogador MUST poder pausar e retomar a partida a qualquer momento; enquanto pausado,
   a cobra MUST ficar imóvel e o cronômetro MUST parar.
+- **FR-022**: O jogo MUST pausar automaticamente quando a janela/aba do navegador perder o foco
+  (troca de aba, minimização da janela, bloqueio de tela no mobile); o cronômetro MUST congelar
+  imediatamente; a partida MUST NOT retomar automaticamente ao recuperar o foco — o jogador MUST
+  acionar a retomada explicitamente.
 - **FR-006**: O jogador MUST poder reiniciar a partida a qualquer momento (em jogo, pausado ou Game
   Over); ao reiniciar, score, cobra e cronômetro MUST ser completamente zerados.
 - **FR-007**: O jogo MUST oferecer 3 níveis de dificuldade selecionáveis antes de cada partida:
@@ -214,30 +254,73 @@ onboarding de novos jogadores em qualquer plataforma.
   superior.
 - **FR-012**: O sistema MUST rejeitar nomes duplicados no ranking; a comparação de nomes MUST ser
   case-insensitive; uma mensagem de erro MUST ser exibida e o formulário MUST permanecer aberto.
+- **FR-019**: O sistema MUST validar o nome informado no formulário de ranking: são permitidos apenas
+  letras (maiúsculas e minúsculas), números, espaços e hífens; o nome MUST ter entre 1 e 20 caracteres;
+  entradas fora deste formato MUST ser rejeitadas com mensagem de erro específica antes de qualquer
+  verificação de duplicidade.
 - **FR-013**: O formulário de ranking MUST oferecer um botão "Nome Aleatório" que preenche o campo
   com um nome gerado automaticamente, garantindo que não coincida com nenhum nome já no ranking.
 - **FR-014**: O formulário de ranking MUST oferecer opção de cancelar/não salvar; cancelar MUST não
   alterar o ranking.
+- **FR-021**: A tela inicial MUST conter um botão "Ranking" (ou equivalente) que exibe o ranking
+  completo (até 5 entradas com nome, score e dificuldade) sem necessidade de jogar; se vazio,
+  MUST exibir mensagem informando que ainda não há scores registrados.
 - **FR-015**: O ranking MUST ser persistido entre sessões usando armazenamento local do navegador;
   os dados MUST sobreviver a recarregamentos de página.
 - **FR-016**: Em dispositivos desktop, a cobra MUST ser controlada pelas teclas de seta direcional
-  e WASD; em dispositivos touch, MUST ser fornecido controle via botões direcionais on-screen.
-- **FR-017**: Todos as telas do jogo (inicial, em jogo, pausado, game over, ajuda, ranking) MUST
-  ser completamente funcionais e legíveis em viewports a partir de 320px de largura.
+  e WASD; em dispositivos touch, MUST ser suportado simultaneamente: (a) swipe direcional sobre o
+  canvas (deslizar para cima/baixo/esquerda/direita muda a direção da cobra) e (b) botões direcionais
+  on-screen visíveis na interface; ambos os métodos MUST funcionar de forma independente e simultânea.
+- **FR-017**: Todas as telas do jogo (inicial, ranking, em jogo, pausado, game over, ajuda) MUST
+  ser completamente funcionais e legíveis em viewports a partir de 320px de largura; a tela de
+  ranking MUST ser acessível tanto a partir da tela inicial quanto da tela de Game Over.
 - **FR-018**: Uma tela de ajuda MUST estar disponível na tela inicial e durante a partida, listando
   todos os controles disponíveis separados por tipo de dispositivo.
+- **FR-023**: A implementação MUST adotar orientação a objetos com classes ES6+ individuais por
+  entidade de domínio (`Snake`, `Arena`, `GameSession`, `Ranking`, `UIManager`, `Game`); a classe
+  `Game` MUST orquestrar as demais via composição; herança de classes de domínio é PROHIBITED.
+- **FR-024**: O `index.html` MUST incluir um favicon definido via SVG data URI inline no elemento
+  `<link rel="icon" type="image/svg+xml">` usando o emoji 🐍 — sem arquivos de imagem externos;
+  a abordagem MUST funcionar em todos os navegadores modernos alvo (Chrome 110+, Firefox 115+,
+  Safari 16+, Edge 110+) sem dependência de servidor ou build step.
+- **FR-025**: O `index.html` MUST conter um `<footer>` visível em todas as telas com o texto
+  "Criado por Jonathan Douglas Diego Tavares" e a linha de copyright no formato
+  `© [ano] Jonathan Douglas Diego Tavares`; o ano MUST ser gerado dinamicamente via
+  `new Date().getFullYear()` no carregamento da página — nenhum ano pode ser hardcoded no HTML
+  ou no CSS; o footer MUST ser estilizado de forma discreta (cor secundária neon, menor que o
+  conteúdo principal) e nunca sobrepor elementos interativos do jogo.
+- **FR-026**: O HUD visível durante a partida MUST exibir o maior score registrado no ranking
+  (valor do 1º lugar) como referência para o jogador; se o ranking estiver vazio, MUST exibir
+  "—"; o valor é lido uma única vez em `game.start()` — não durante os frames da
+  partida — e armazenado em `GameSession.bestScoreAtStart`.
+- **FR-027** *(emenda a FR-018)*: Ao fechar o modal de ajuda com `status === 'playing'` no momento
+  da abertura, o jogo MUST retomar automaticamente sem ação adicional do jogador; ao fechar o modal
+  de ajuda com `status === 'paused'` no momento da abertura, o jogo MUST permanecer pausado (sem
+  retomar automaticamente); ao fechar o modal de ajuda quando não há partida ativa (`null` — a partir
+  da tela inicial ou de ranking), o sistema MUST retornar ao estado anterior sem iniciar nem alterar
+  nenhuma partida.
+- **FR-028** *(emenda a FR-017)*: A tela inicial MUST exibir um resumo visual discreto dos
+  controles principais adaptado ao dispositivo: em viewports ≥ 768px, MUST exibir controles de
+  teclado (setas/WASD, P para pausar, H para ajuda); em viewports 480–767px, MUST exibir controles
+  touch (swipe, botões on-screen, botão pausar); em viewports < 480px, MUST exibir apenas
+  caracteres Unicode compactos (`← ↑ ↓ → ⏸ ?`) sem texto adicional; a alternância MUST ser via
+  CSS puro — sem lógica JavaScript adicional.
+- **FR-029**: Quando não houver células vazias para spawnar alimento após crescimento da cobra,
+  o jogo MUST encerrar a partida com status `'complete'` — visualmente distinto de Game Over
+  por colisão — exibindo mensagem de conquista; as regras de qualificação para top 5 se aplicam
+  normalmente.
 
 ### Key Entities
 
-- **GameSession**: representa uma partida ativa; atributos: score, elapsedTime, status (playing /
-  paused / game_over), difficulty.
-- **Snake**: coleção ordenada de segmentos em posições da grade; atributos: head position,
-  direction, body segments array.
-- **Arena**: grade de jogo; atributos: dimensions (cols × rows), obstacle positions, food position.
-- **RankingEntry**: entrada no ranking; atributos: playerName (único, case-insensitive), score,
-  difficulty, date; máximo de 5 entradas.
-- **DifficultyConfig**: configuração de nível; atributos: name (Fácil/Médio/Difícil), speed
-  (cells/second), obstacleCount.
+Todas as entidades MUST ser implementadas como **classes ES6+** com responsabilidade única. A arquitetura utiliza **composição pura** (sem herança desnecessária) — a classe `Game` orquestra as demais por injeção de dependência.
+
+- **`class GameSession`**: representa uma partida ativa; atributos: score, elapsedMs, status (`'idle'` — valor inicial antes de `game.start()` / `'playing'` / `'paused'` / `'game_over'` / `'complete'`), difficulty, bestScoreAtStart (lido do ranking em `game.start()` — FR-026); nenhuma lógica de renderização.
+- **`class Snake`**: coleção ordenada de segmentos em posições da grade; atributos: head position, direction (+ pendingDirection buffer), segments array; métodos: `move()`, `grow()`, `setDirection()`, `occupiesCell()`.
+- **`class Arena`**: grade de jogo; atributos: dimensions (cols × rows), obstacle positions, food position; métodos: `generateObstacles()`, `spawnFood()`, `getEmptyCells()`; não conhece Snake diretamente (recebe posições por parâmetro).
+- **`class Ranking`**: gerente do ranking persistido; encapsula toda a lógica de leitura/escrita no localStorage; métodos: `load()`, `save(entry)`, `qualifies(score)`, `validateName(name)`, `generateRandomName()`.
+- **`class UIManager`**: gerente de telas e renderização; métodos: `showScreen()`, `render()`, `#updateHUD()` (privado — chamado internamente por `render()`), `openModal()`, `closeModal()`, `openHelpModal(statusBeforeHelp)`, `closeHelpModal(game)`, `showPauseOverlay()`, `hidePauseOverlay()`; não contém lógica de jogo.
+- **`class Game`**: orquestrador principal; compõe `GameSession`, `Snake`, `Arena` e referencia `UIManager` + `Ranking`; responsável pelo loop `requestAnimationFrame` e pela máquina de estados da partida.
+- **`DifficultyConfig`**: objeto de configuração simples (não requer classe) — constante imutável definida em `config.js`; atributos: name (Fácil/Médio/Difícil), speed (cells/second), obstacleCount, scoreMultiplier (1 / 2 / 3).
 
 ## Success Criteria *(mandatory)*
 
@@ -257,12 +340,37 @@ onboarding de novos jogadores em qualquer plataforma.
   e sem sobreposição de elementos de UI.
 - **SC-007**: Um jogador consegue entender como jogar em qualquer dispositivo lendo apenas a tela
   de ajuda in-game, sem consultar documentação externa.
+- **SC-010**: Em um teste de troca de aba com partida ativa, a cobra MUST estar imóvel e o
+  cronômetro MUST estar congelado 100ms após a perda de foco; ao retornar o foco, a partida MUST
+  permanecer pausada até o jogador acionar retomada.
+- **SC-009**: Em um teste lado a lado, comer o mesmo número de alimentos no nível Difícil MUST
+  produzir exatamente 3× a pontuação obtida no nível Fácil.
+- **SC-008**: O sistema rejeita 100% das tentativas de salvar nomes com caracteres não permitidos
+  (fora de letras, números, espaços e hífens) ou com comprimento fora do intervalo 1–20 caracteres,
+  exibindo mensagem de erro antes de verificar duplicidade.
+- **SC-011**: O ano exibido no copyright do `<footer>` MUST corresponder ao ano corrente do
+  sistema em 100% dos carregamentos — verificável recarregando a página em 1º de Janeiro de
+  qualquer ano futuro sem alterar nenhum arquivo do projeto.
+- **SC-012**: Em 100% das partidas iniciadas com ranking não-vazio, o HUD exibe o campo de
+  melhor score com o valor correto do 1º lugar — verificável com e sem dados no localStorage.
+- **SC-013**: Fechar o modal de ajuda com `status === 'playing'` anterior resulta em retomada
+  automática em 100% dos casos; fechar com `status === 'paused'` anterior mantém o jogo pausado
+  em 100% dos casos — verificável sem pressionar nenhum outro botão após fechar o modal.
+- **SC-014**: A tela inicial exibe controles de teclado em viewport ≥ 768px, controles touch em
+  viewport 480–767px e apenas caracteres Unicode compactos (`← ↑ ↓ → ⏸ ?`) em viewport < 480px,
+  sem nenhuma linha de JavaScript adicional — verificável inspecionando o HTML/CSS resultante.
+- **SC-015**: Em partidas que atingem campo completamente preenchido, o título exibido é
+  `"Campo Completo! 🏆"` em `var(--clr-accent)` sem animação shake, o score é avaliado corretamente
+  para o ranking e nenhuma cor nova é introduzida — verificável em teste de desenvolvimento com
+  estado forçado.
 
 ## Assumptions
 
 - O jogo é exclusivamente single-player; não há ranking compartilhado, backend ou sincronização online.
-- Os três níveis de dificuldade são: Fácil (poucos obstáculos, cobra lenta), Médio (obstáculos
-  moderados, velocidade média) e Difícil (muitos obstáculos, cobra rápida).
+- O ranking é acessível na tela inicial (via botão dedicado) e na tela de Game Over (após salvar ou cancelar o score); não é exibido durante uma partida ativa.
+- Os três níveis de dificuldade são: Fácil (poucos obstáculos, cobra lenta, +1 ponto/alimento),
+  Médio (obstáculos moderados, velocidade média, +2 pontos/alimento) e Difícil (muitos obstáculos,
+  cobra rápida, +3 pontos/alimento).
 - Obstáculos são estáticos por sessão: são gerados aleatoriamente no início da partida e permanecem
   fixos até o reinício.
 - Se o score não qualificar para o top 5, o formulário de nome não é exibido; uma mensagem informativa
@@ -273,3 +381,10 @@ onboarding de novos jogadores em qualquer plataforma.
 - A tela de ajuda exibe controles de desktop e mobile separadamente; o jogo não precisa detectar
   automaticamente o tipo de dispositivo para filtrar o conteúdo da ajuda.
 - O jogo é iniciado abrindo diretamente o arquivo `index.html` no navegador, sem necessidade de servidor.
+- Quando o campo de jogo estiver completamente preenchido e não houver células vazias para spawnar
+  alimento, o jogo encerra com status `'complete'` (Campo Completo) — não com Game Over por colisão
+  — e exibe mensagem de conquista diferenciada; regras de ranking se aplicam normalmente (FR-029).
+- A pausa é implementada como overlay absoluto sobre a tela de jogo, sem navegar para uma tela
+  separada — o canvas e o estado de render permanecem visíveis durante a pausa.
+- O melhor score exibido no HUD é lido do ranking uma vez no início de cada partida e permanece
+  fixo até o próximo início — não é atualizado frame a frame (FR-026).

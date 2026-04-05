@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Jogo da Cobrinha" />
+  <meta name="theme-color" content="#0d0d1a" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='1em' font-size='1em'>🐍</text></svg>" />
+  <link rel="stylesheet" href="css/style.css" />
+  <title>Jogo da Cobrinha</title>
+</head>
+<body>
+  <main>
+    <!-- Screen: Home -->
+    <section id="screen-home" class="screen screen--active">
+      <h1 class="neon-pulse">🐍 Jogo da Cobrinha</h1>
+
+      <div class="difficulty-selector">
+        <button id="btn-easy"   class="difficulty-btn difficulty-btn--active">Fácil</button>
+        <button id="btn-medium" class="difficulty-btn">Médio</button>
+        <button id="btn-hard"   class="difficulty-btn">Difícil</button>
+      </div>
+
+      <div class="home-actions">
+        <button id="btn-play" class="btn-primary neon-pulse">Jogar</button>
+        <button id="btn-ranking-home" class="btn-secondary">🏆 Ranking</button>
+        <button id="btn-help-home" class="btn-icon" aria-label="Abrir ajuda">?</button>
+      </div>
+
+      <div id="controls-hint">
+        <div class="controls-hint--desktop">⌨ Mover: ↑↓←→ ou WASD &nbsp;·&nbsp; P: Pausar &nbsp;·&nbsp; H: Ajuda</div>
+        <div class="controls-hint--mobile">👆 Swipe para mover &nbsp;·&nbsp; ⏸ Pausar &nbsp;·&nbsp; ? Ajuda</div>
+        <div class="controls-hint--compact">← ↑ ↓ → &nbsp;⏸&nbsp; ?</div>
+      </div>
+    </section>
+
+    <!-- Screen: Game -->
+    <section id="screen-game" class="screen screen--hidden">
+      <div class="hud">
+        <div id="hud-score-box">
+          <span class="hud-label">Score</span>
+          <span id="hud-score">0</span>
+        </div>
+        <div id="hud-best">
+          <span class="hud-label">Recorde:</span>
+          <span id="hud-best-value">—</span>
+        </div>
+        <div id="hud-timer-box">
+          <span class="hud-label">Tempo</span>
+          <span id="hud-timer">00:00</span>
+        </div>
+        <div id="hud-level-box">
+          <span class="hud-label">Nível</span>
+          <span id="hud-level">Fácil</span>
+        </div>
+        <div id="hud-multiplier-box">
+          <span class="hud-label">×</span>
+          <span id="hud-multiplier">1</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="pause-overlay" class="pause-overlay pause-overlay--hidden">
+          <h2 class="neon-pulse">PAUSADO</h2>
+          <p id="pause-score">Score: <span></span></p>
+          <p id="pause-timer"></p>
+          <button id="btn-resume" class="btn-primary">▶ Retomar</button>
+          <button id="btn-restart-paused" class="btn-secondary">↺ Reiniciar</button>
+        </div>
+      </div>
+
+      <div class="game-controls">
+        <button id="btn-pause" class="btn-icon" aria-label="Pausar">⏸</button>
+        <button id="btn-restart-game" class="btn-icon" aria-label="Reiniciar">↺</button>
+      </div>
+
+      <div class="onscreen-controls">
+        <div class="dpad">
+          <button id="btn-up"    class="dpad-btn" aria-label="Cima">▲</button>
+          <button id="btn-left"  class="dpad-btn" aria-label="Esquerda">◀</button>
+          <button id="btn-down"  class="dpad-btn" aria-label="Baixo">▼</button>
+          <button id="btn-right" class="dpad-btn" aria-label="Direita">▶</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Game Over -->
+    <section id="screen-gameover" class="screen screen--hidden">
+      <div class="gameover-content">
+        <h2 id="gameover-status-msg">GAME OVER</h2>
+        <div class="gameover-stats">
+          <p>Score: <strong id="gameover-score">0</strong></p>
+          <p>Tempo: <strong id="gameover-time">00:00</strong></p>
+          <p>Nível: <strong id="gameover-level">Fácil</strong></p>
+        </div>
+        <p id="gameover-no-qualify" class="info-msg" hidden></p>
+        <div class="gameover-actions">
+          <button id="btn-restart-gameover" class="btn-primary">↺ Jogar Novamente</button>
+          <button id="btn-ranking-gameover" class="btn-secondary">🏆 Ver Ranking</button>
+          <button id="btn-home-gameover" class="btn-secondary">🏠 Menu Principal</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Ranking -->
+    <section id="screen-ranking" class="screen screen--hidden">
+      <h2>🏆 Melhores Scores</h2>
+      <div id="ranking-table"></div>
+      <div class="ranking-actions">
+        <button id="btn-back-ranking" class="btn-secondary">← Voltar</button>
+        <button id="btn-play-ranking" class="btn-primary">Jogar</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Help -->
+  <div id="modal-help" class="modal modal--hidden" role="dialog" aria-modal="true" aria-label="Ajuda">
+    <div class="modal-content">
+      <button class="modal-close" id="btn-close-help" aria-label="Fechar ajuda">×</button>
+      <h2>Ajuda</h2>
+      <section class="help-desktop">
+        <h3>⌨ Desktop</h3>
+        <table>
+          <tr><td>↑ ↓ ← →&nbsp;/&nbsp;WASD</td><td>Mover</td></tr>
+          <tr><td>P</td><td>Pausar / Retomar</td></tr>
+          <tr><td>R</td><td>Reiniciar</td></tr>
+          <tr><td>H / ?</td><td>Ajuda</td></tr>
+        </table>
+      </section>
+      <section class="help-mobile">
+        <h3>📱 Mobile</h3>
+        <table>
+          <tr><td>Swipe no canvas</td><td>Mover</td></tr>
+          <tr><td>Botões ▲▼◀▶</td><td>Mover</td></tr>
+          <tr><td>⏸ Botão Pausar</td><td>Pausar / Retomar</td></tr>
+          <tr><td>↺ Botão Reiniciar</td><td>Reiniciar</td></tr>
+        </table>
+      </section>
+      <section class="help-scoring">
+        <h3>🏆 Pontuação</h3>
+        <table>
+          <tr><td>Fácil</td><td>×1 por alimento</td></tr>
+          <tr><td>Médio</td><td>×2 por alimento</td></tr>
+          <tr><td>Difícil</td><td>×3 por alimento</td></tr>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <!-- Modal: Save Name -->
+  <div id="modal-save-name" class="modal modal--hidden" role="dialog" aria-modal="true" aria-label="Salvar score">
+    <div class="modal-content">
+      <h2>Novo recorde!</h2>
+      <p>Score: <span id="modal-score"></span> · <span id="modal-level"></span></p>
+      <label for="name-input">Seu nome:</label>
+      <input id="name-input" type="text" maxlength="20" placeholder="Ex: NeonCobra" autocomplete="off" />
+      <p id="name-error" class="error-msg" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button id="btn-random-name" class="btn-secondary">🎲 Nome Aleatório</button>
+        <button id="btn-save-name" class="btn-primary" disabled>Salvar</button>
+        <button id="btn-skip-save" class="btn-ghost">Não salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <footer id="site-footer">
+    <p>Criado por Jonathan Douglas Diego Tavares</p>
+    <p>© <span id="footer-year"></span> Jonathan Douglas Diego Tavares</p>
+  </footer>
+
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/ranking.js"></script>
+  <script type="module" src="js/ui.js"></script>
+  <script type="module" src="js/game.js"></script>
+  <script type="module" src="js/controls.js"></script>
+</body>
+</html>
