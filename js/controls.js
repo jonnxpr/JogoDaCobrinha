@@ -51,6 +51,13 @@ document.addEventListener('keydown', (e) => {
       else if (status === 'paused') game.resume();
       break;
     }
+    case 'Escape': {
+      if (screen === 'screen-game') {
+        game.quit();
+        ui.showScreen('screen-home');
+      }
+      break;
+    }
     case 'r': case 'R': {
       if (screen === 'screen-game') game.restart();
       break;
@@ -119,6 +126,10 @@ document.getElementById('btn-pause')?.addEventListener('click', () => {
 
 document.getElementById('btn-resume')?.addEventListener('click', () => game.resume());
 document.getElementById('btn-restart-paused')?.addEventListener('click', () => game.restart());
+document.getElementById('btn-home-pause')?.addEventListener('click', () => {
+  game.quit();
+  ui.showScreen('screen-home');
+});
 document.getElementById('btn-restart-game')?.addEventListener('click', () => {
   if (ui.currentScreen === 'screen-game') game.restart();
 });

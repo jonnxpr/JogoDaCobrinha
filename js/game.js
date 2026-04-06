@@ -201,9 +201,16 @@ export class Game {
     this.#lastTime = 0;
     this.#accumulated = 0;
 
-    this.#session.setStatus('playing');
     this.#ui.showScreen('screen-game');
-    this.#rafId = requestAnimationFrame(this.#loop.bind(this));
+
+    if (difficulty.name === 'hard') {
+      this.#session.setStatus('paused');
+      this.#ui.render(this.#snake, this.#arena, this.#session);
+      this.#ui.showPauseOverlay(this.#session);
+    } else {
+      this.#session.setStatus('playing');
+      this.#rafId = requestAnimationFrame(this.#loop.bind(this));
+    }
   }
 
   // --- Game Loop ---
@@ -302,6 +309,15 @@ export class Game {
     this.#rafId = null;
     this.#ui.hidePauseOverlay();
     this.start(difficulty);
+  }
+
+  quit() {
+    if (this.#rafId !== null) {
+      cancelAnimationFrame(this.#rafId);
+      this.#rafId = null;
+    }
+    this.#session = null;
+    this.#ui.hidePauseOverlay();
   }
 }
 

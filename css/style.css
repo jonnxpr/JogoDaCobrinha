@@ -125,8 +125,8 @@ button {
   background: transparent;
   color: var(--clr-text-muted);
   border: 1px solid var(--clr-text-muted);
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.9rem;
 }
 
 .btn-ghost:hover,

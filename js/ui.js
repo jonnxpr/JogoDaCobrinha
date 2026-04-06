@@ -150,8 +150,13 @@ export class UIManager {
     if (!overlay) return;
     const scoreEl = overlay.querySelector('#pause-score span');
     const timerEl = document.getElementById('pause-timer');
+    const titleEl = overlay.querySelector('h2');
+    const resumeBtn = document.getElementById('btn-resume');
+    const isInitial = session && session.elapsedMs === 0;
     if (scoreEl) scoreEl.textContent = session ? session.score : '';
     if (timerEl) timerEl.textContent = session ? `Tempo: ${this.#formatTime(session.elapsedMs)}` : '';
+    if (titleEl) titleEl.textContent = isInitial ? 'PRONTO?' : 'PAUSADO';
+    if (resumeBtn) resumeBtn.textContent = isInitial ? '▶ Iniciar' : '▶ Retomar';
     overlay.classList.remove('pause-overlay--hidden');
   }
 
