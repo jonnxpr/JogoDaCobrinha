@@ -581,6 +581,18 @@ button {
   justify-content: flex-end;
 }
 
+.modal-save-row {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.modal-save-row button {
+  flex: 1;
+  max-width: 160px;
+}
+
 /* --- Help Modal Sections --- */
 
 .help-desktop,
