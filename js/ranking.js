@@ -1,21 +1,55 @@
 // --- Imports ---
 
 import {
-  RANKING_STORAGE_KEY,
+  RANKING_COOKIE_KEY,
   RANKING_MAX_ENTRIES,
   PLAYER_NAME_REGEX,
   ADJECTIVES,
   NOUNS,
 } from './config.js';
 
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
+
 // --- Class Ranking ---
 
 export class Ranking {
+  // --- Cookie Helpers ---
+
+  #readCookie(name) {
+    if (typeof document === 'undefined') return null;
+
+    const prefix = `${name}=`;
+    const cookies = document.cookie ? document.cookie.split('; ') : [];
+    const match = cookies.find((cookie) => cookie.startsWith(prefix));
+    if (!match) return null;
+
+    const value = match.slice(prefix.length);
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return null;
+    }
+  }
+
+  #writeCookie(name, value) {
+    if (typeof document === 'undefined') return;
+
+    const encoded = encodeURIComponent(value);
+    const expires = new Date(Date.now() + COOKIE_MAX_AGE_SECONDS * 1000).toUTCString();
+    document.cookie = `${name}=${encoded}; max-age=${COOKIE_MAX_AGE_SECONDS}; expires=${expires}; path=/; samesite=lax`;
+  }
+
+  #clearCookie(name) {
+    if (typeof document === 'undefined') return;
+
+    document.cookie = `${name}=; max-age=0; path=/; samesite=lax`;
+  }
+
   // --- Load ---
 
   load() {
     try {
-      const raw = localStorage.getItem(RANKING_STORAGE_KEY);
+      const raw = this.#readCookie(RANKING_COOKIE_KEY);
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
@@ -31,7 +65,7 @@ export class Ranking {
         .sort((a, b) => b.score - a.score || a.savedAt.localeCompare(b.savedAt))
         .slice(0, RANKING_MAX_ENTRIES);
     } catch {
-      localStorage.removeItem(RANKING_STORAGE_KEY);
+      this.#clearCookie(RANKING_COOKIE_KEY);
       return [];
     }
   }
@@ -49,7 +83,7 @@ export class Ranking {
     entries.push(entry);
     entries.sort((a, b) => b.score - a.score || a.savedAt.localeCompare(b.savedAt));
     const trimmed = entries.slice(0, RANKING_MAX_ENTRIES);
-    localStorage.setItem(RANKING_STORAGE_KEY, JSON.stringify(trimmed));
+    this.#writeCookie(RANKING_COOKIE_KEY, JSON.stringify(trimmed));
   }
 
   // --- Qualifies ---

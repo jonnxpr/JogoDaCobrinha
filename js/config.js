@@ -4,7 +4,7 @@ export const GRID_COLS = 20;
 export const GRID_ROWS = 20;
 export const INITIAL_SNAKE_LENGTH = 3;
 export const RANKING_MAX_ENTRIES = 5;
-export const RANKING_STORAGE_KEY = 'snakeRanking';
+export const RANKING_COOKIE_KEY = 'snakeRanking';
 export const PLAYER_NAME_REGEX = /^[a-zA-Z0-9 \-]{1,20}$/;
 
 // --- Difficulties ---
