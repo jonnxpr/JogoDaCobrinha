@@ -192,6 +192,66 @@ button {
   box-shadow: var(--glow-snake);
 }
 
+.map-size-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.map-btn {
+  background: var(--clr-ui-bg);
+  color: var(--clr-text);
+  border: 2px solid var(--clr-text-muted);
+  padding: 0.35rem 0.9rem;
+  font-family: var(--font-game);
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  flex: 1 1 auto;
+  max-width: 110px;
+}
+
+.map-btn__label {
+  line-height: 1.2;
+}
+
+.map-btn__dim {
+  font-size: 0.65rem;
+  color: var(--clr-text-muted);
+  letter-spacing: 0.05em;
+}
+
+.map-btn:hover,
+.map-btn:focus-visible {
+  border-color: var(--clr-accent);
+  color: var(--clr-accent);
+  outline: none;
+}
+
+.map-btn:hover .map-btn__dim,
+.map-btn:focus-visible .map-btn__dim {
+  color: var(--clr-accent);
+}
+
+.map-btn--active {
+  background: var(--clr-accent);
+  color: var(--clr-bg);
+  border-color: var(--clr-accent);
+  box-shadow: var(--glow-snake);
+}
+
+.map-btn--active .map-btn__dim {
+  color: var(--clr-bg);
+  opacity: 0.75;
+}
+
 .home-actions {
   display: flex;
   gap: 0.75rem;
@@ -316,6 +376,7 @@ button {
   gap: 1rem;
   z-index: 10;
   border-radius: 4px;
+  padding: 1rem;
 }
 
 .pause-overlay--hidden {
@@ -682,5 +743,83 @@ button {
 
   .canvas-container {
     max-width: min(60vh, 600px);
+  }
+}
+
+/* --- Very small screens (< 480px portrait) --- */
+
+@media (max-width: 479px) {
+  .screen {
+    gap: 0.6rem;
+    padding: 0.6rem;
+  }
+
+  .map-btn {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .map-btn__dim {
+    font-size: 0.58rem;
+  }
+
+  .difficulty-btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+  }
+
+  .pause-overlay {
+    gap: 0.6rem;
+  }
+
+  .pause-overlay h2 {
+    font-size: 1.4rem;
+  }
+}
+
+/* --- Landscape phones (small viewport height) --- */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  #screen-home {
+    gap: 0.4rem;
+    padding: 0.5rem;
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
+
+  h1 {
+    font-size: clamp(1rem, 4vw, 1.4rem);
+  }
+
+  #screen-game {
+    gap: 0.2rem;
+    padding: 0.25rem;
+  }
+
+  .canvas-container {
+    max-width: calc(100vh - 90px);
+  }
+
+  .hud {
+    padding: 0.15rem 0.4rem;
+    gap: 0.4rem;
+  }
+
+  .hud-label {
+    display: none;
+  }
+
+  #hud-score {
+    font-size: 1rem;
+  }
+
+  #hud-best-value,
+  #hud-timer,
+  #hud-multiplier {
+    font-size: 0.85rem;
+  }
+
+  .onscreen-controls {
+    display: none;
   }
 }

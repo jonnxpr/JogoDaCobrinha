@@ -1,6 +1,6 @@
 // --- Imports ---
 
-import { GRID_COLS, DIFFICULTIES, RANKING_MAX_ENTRIES } from './config.js';
+import { MAP_SIZES, DIFFICULTIES, RANKING_MAX_ENTRIES } from './config.js';
 import { ranking } from './ranking.js';
 
 // --- Class UIManager ---
@@ -15,6 +15,8 @@ export class UIManager {
   #currentScreen = 'screen-home';
   #previousScreen = 'screen-home';
   #selectedDifficultyKey = 'easy';
+  #selectedMapSizeKey = 'medium';
+  #activeCols = 20;
   #resizeObserver = null;
 
   // --- Constructor ---
@@ -25,6 +27,7 @@ export class UIManager {
     this.#initCanvas();
     this.#initFooterYear();
     this.#initDifficultySelector();
+    this.#initMapSizeSelector();
     this.#renderHelpModal();
   }
 
@@ -36,6 +39,10 @@ export class UIManager {
 
   get selectedDifficultyKey() {
     return this.#selectedDifficultyKey;
+  }
+
+  get selectedMapSizeKey() {
+    return this.#selectedMapSizeKey;
   }
 
   get currentScreen() {
@@ -58,11 +65,11 @@ export class UIManager {
   #resizeCanvas() {
     const container = this.#canvas.parentElement;
     const size = Math.floor(
-      Math.min(container.clientWidth, container.clientHeight) / GRID_COLS
-    ) * GRID_COLS;
+      Math.min(container.clientWidth, container.clientHeight) / this.#activeCols
+    ) * this.#activeCols;
     this.#canvas.width = size || 400;
     this.#canvas.height = size || 400;
-    this.#cellSize = this.#canvas.width / GRID_COLS;
+    this.#cellSize = this.#canvas.width / this.#activeCols;
   }
 
   // --- Footer Year ---
@@ -87,6 +94,31 @@ export class UIManager {
         btn.classList.add('difficulty-btn--active');
       });
     });
+  }
+
+  // --- Map Size Selector ---
+
+  #initMapSizeSelector() {
+    ['small', 'medium', 'large'].forEach((key) => {
+      const btnId = { small: 'btn-map-small', medium: 'btn-map-medium', large: 'btn-map-large' }[key];
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        this.#selectedMapSizeKey = key;
+        this.#activeCols = MAP_SIZES[key].cols;
+        document.querySelectorAll('.map-btn').forEach((b) =>
+          b.classList.remove('map-btn--active')
+        );
+        btn.classList.add('map-btn--active');
+      });
+    });
+  }
+
+  // --- Update Active Cols ---
+
+  updateActiveCols(cols) {
+    this.#activeCols = cols;
+    this.#resizeCanvas();
   }
 
   // --- Screen Management ---

@@ -33,6 +33,14 @@ export const DIFFICULTIES = {
   },
 };
 
+// --- Map Sizes ---
+
+export const MAP_SIZES = {
+  small:  { name: 'small',  label: 'Pequeno', cols: 15, rows: 15 },
+  medium: { name: 'medium', label: 'Médio',   cols: 20, rows: 20 },
+  large:  { name: 'large',  label: 'Grande',  cols: 30, rows: 30 },
+};
+
 // --- Random Name Wordlists ---
 
 export const ADJECTIVES = [

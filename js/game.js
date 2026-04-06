@@ -1,6 +1,6 @@
 // --- Imports ---
 
-import { GRID_COLS, GRID_ROWS, DIFFICULTIES } from './config.js';
+import { DIFFICULTIES } from './config.js';
 import { ranking } from './ranking.js';
 import { ui } from './ui.js';
 
@@ -75,9 +75,13 @@ class Arena {
   food = { x: 0, y: 0 };
 
   #difficulty;
+  #cols;
+  #rows;
 
-  constructor(difficulty) {
+  constructor(difficulty, cols, rows) {
     this.#difficulty = difficulty;
+    this.#cols = cols;
+    this.#rows = rows;
   }
 
   // --- Empty Cells ---
@@ -86,8 +90,8 @@ class Arena {
     const occupied = new Set(snakeSegments.map(({ x, y }) => `${x},${y}`));
     this.obstacleSet.forEach((k) => occupied.add(k));
     const cells = [];
-    for (let x = 0; x < GRID_COLS; x++) {
-      for (let y = 0; y < GRID_ROWS; y++) {
+    for (let x = 0; x < this.#cols; x++) {
+      for (let y = 0; y < this.#rows; y++) {
         if (!occupied.has(`${x},${y}`)) cells.push({ x, y });
       }
     }
@@ -164,6 +168,9 @@ export class Game {
   #lastTime = 0;
   #accumulated = 0;
   #stepInterval = 0;
+  #cols = 20;
+  #rows = 20;
+  #mapSize = null;
   #ui;
   #ranking;
 
@@ -184,16 +191,22 @@ export class Game {
 
   // --- Start ---
 
-  start(difficulty) {
+  start(difficulty, mapSize) {
+    const cols = mapSize?.cols ?? 20;
+    const rows = mapSize?.rows ?? 20;
+    this.#cols = cols;
+    this.#rows = rows;
+    this.#mapSize = mapSize ?? null;
+
     if (this.#rafId !== null) cancelAnimationFrame(this.#rafId);
 
     this.#session = new GameSession(difficulty);
     this.#snake = new Snake({
-      startX: Math.floor(GRID_COLS / 2),
-      startY: Math.floor(GRID_ROWS / 2),
+      startX: Math.floor(cols / 2),
+      startY: Math.floor(rows / 2),
       direction: 'RIGHT',
     });
-    this.#arena = new Arena(difficulty);
+    this.#arena = new Arena(difficulty, cols, rows);
     this.#arena.init(this.#snake.segments);
 
     this.#session.bestScoreAtStart = this.#ranking.load()[0]?.score ?? null;
@@ -201,6 +214,7 @@ export class Game {
     this.#lastTime = 0;
     this.#accumulated = 0;
 
+    this.#ui.updateActiveCols(cols);
     this.#ui.showScreen('screen-game');
 
     if (difficulty.name === 'hard') {
@@ -274,7 +288,7 @@ export class Game {
 
   #checkCollision(nextHead) {
     const { x, y } = nextHead;
-    if (x < 0 || x >= GRID_COLS || y < 0 || y >= GRID_ROWS) return 'border';
+    if (x < 0 || x >= this.#cols || y < 0 || y >= this.#rows) return 'border';
     if (this.#arena.obstacleSet.has(`${x},${y}`)) return 'obstacle';
     if (this.#snake.segments.some((s) => s.x === x && s.y === y)) return 'self';
     return null;
@@ -308,7 +322,7 @@ export class Game {
     if (this.#rafId !== null) cancelAnimationFrame(this.#rafId);
     this.#rafId = null;
     this.#ui.hidePauseOverlay();
-    this.start(difficulty);
+    this.start(difficulty, this.#mapSize);
   }
 
   quit() {

@@ -1,6 +1,6 @@
 // --- Imports ---
 
-import { DIFFICULTIES } from './config.js';
+import { DIFFICULTIES, MAP_SIZES } from './config.js';
 import { game } from './game.js';
 import { ranking } from './ranking.js';
 import { ui } from './ui.js';
@@ -138,7 +138,8 @@ document.getElementById('btn-restart-game')?.addEventListener('click', () => {
 
 document.getElementById('btn-play')?.addEventListener('click', () => {
   const diff = DIFFICULTIES[ui.selectedDifficultyKey] ?? DIFFICULTIES.easy;
-  game.start(diff);
+  const mapSize = MAP_SIZES[ui.selectedMapSizeKey] ?? MAP_SIZES.medium;
+  game.start(diff, mapSize);
 });
 
 document.getElementById('btn-ranking-home')?.addEventListener('click', () => {
@@ -171,8 +172,9 @@ document.getElementById('btn-back-ranking')?.addEventListener('click', () => {
 
 document.getElementById('btn-play-ranking')?.addEventListener('click', () => {
   const diff = DIFFICULTIES[ui.selectedDifficultyKey] ?? DIFFICULTIES.easy;
+  const mapSize = MAP_SIZES[ui.selectedMapSizeKey] ?? MAP_SIZES.medium;
   ui.showScreen('screen-home');
-  setTimeout(() => game.start(diff), 0);
+  setTimeout(() => game.start(diff, mapSize), 0);
 });
 
 // --- Help Modal Close ---
